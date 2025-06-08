@@ -20,11 +20,16 @@ if (!MONGO_URI || !JWT_SECRET) {
 mongoose.connect(MONGO_URI, {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
-    family: 4
+    family: 4,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    retryWrites: true,
+    w: 'majority'
 })
-    .then(() => console.log('mongo ok'))
+    .then(() => console.log('Successfully connected to MongoDB'))
     .catch(e => {
         console.error('MongoDB connection error:', e);
+        console.error('Make sure your MongoDB Atlas cluster has the correct IP whitelist settings');
         process.exit(1);
     });
 
