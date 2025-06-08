@@ -1,91 +1,162 @@
-require('dotenv').config();
+// // sell-ideas-single.js – one‑file demo marketplace (CommonJS)
+// // Quick start:
+// //   npm install express
+// //   node sell-ideas-single.js
+// // NOTE: In‑memory storage. Restarting the server clears everything.
+
+// const express = require('express');
+
+// const PORT = process.env.PORT || 5000;
+// const app  = express();
+// app.use(express.json());
+
+// // Log every request (method + URL) to help debug routing issues
+// app.use((req, _res, next) => {
+//   console.log(`${req.method} ${req.url}`);
+//   next();
+// });
+
+// // ───────────────────────────────────────────────────────────────
+// // In‑memory store
+// // ───────────────────────────────────────────────────────────────
+// const ideas = [];
+// let   nextId = 1;
+
+// // ───────────────────────────────────────────────────────────────
+// // REST API
+// // ───────────────────────────────────────────────────────────────
+// app.get('/api/ideas', (_req, res) => {
+//   res.json([...ideas].reverse()); // newest first
+// });
+
+// app.post('/api/ideas', (req, res) => {
+//   const { title, description, price } = req.body;
+//   if (!title || !description || price == null) {
+//     return res.status(400).json({ message: 'title, description and price are required' });
+//   }
+//   const idea = {
+//     id: nextId++,
+//     title,
+//     description,
+//     price: Number(price),
+//     createdAt: Date.now(),
+//   };
+//   ideas.push(idea);
+//   res.status(201).json(idea);
+// });
+
+// app.get('/api/ideas/:id', (req, res) => {
+//   const idea = ideas.find(i => i.id === Number(req.params.id));
+//   if (!idea) return res.status(404).json({ message: 'Not found' });
+//   res.json(idea);
+// });
+
+// // ───────────────────────────────────────────────────────────────
+// // Front‑end served as a literal HTML string
+// // ───────────────────────────────────────────────────────────────
+// const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Sell Your Ideas</title><style>:root{color-scheme:light dark}body{font-family:system-ui,Arial,sans-serif;margin:0;padding:2rem;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.5}h1,h2,h3{margin:0 0 .4em}a{color:#0366d6;text-decoration:none}a:hover{text-decoration:underline}.btn{display:inline-block;padding:.45rem 1rem;background:#0366d6;color:#fff;border-radius:4px;margin:.6rem 0}.card{border:1px solid #ddd;padding:1rem;border-radius:6px;margin-top:1rem}input,textarea{width:100%;padding:.5rem;margin:.25rem 0;border:1px solid #ccc;border-radius:4px;font:inherit}</style></head><body><h1>Sell Your Ideas</h1><div id="app"></div><script>// ───── client-side router ─────
+// function navigate(p){history.pushState(null,'',p);render()}window.addEventListener('popstate',render);document.addEventListener('click',e=>{const a=e.target.closest('a[data-link]');if(a){e.preventDefault();navigate(a.getAttribute('href'))}});// ───── fetch helper ─────
+// async function api(p,opt={}){const r=await fetch(p,{headers:{'Content-Type':'application/json'},...opt});return r.json()}// ───── views ─────
+// async function listView(){const list=await api('/api/ideas');const markup='<a data-link href="/new" class="btn">Post a new idea →</a>'+list.map(i=>'<div class="card"><h3><a data-link href="/idea/'+i.id+'">'+i.title+'</a></h3><p>'+i.description.replace(/</g,'&lt;').slice(0,120)+(i.description.length>120?'…':'')+'</p><strong>$'+i.price.toFixed(2)+'</strong></div>').join('');document.getElementById('app').innerHTML=markup}function formView(){document.getElementById('app').innerHTML='<a data-link href="/" >← Back</a><form id="ideaForm"><input name="title" placeholder="Title" required/><textarea name="description" rows="4" placeholder="Description" required></textarea><input name="price" type="number" step="0.01" min="0" placeholder="Price (USD)" required/><button class="btn" type="submit">Publish</button></form>';document.getElementById('ideaForm').addEventListener('submit',async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());data.price=Number(data.price);const idea=await api('/api/ideas',{method:'POST',body:JSON.stringify(data)});navigate('/idea/'+idea.id)})}async function detailView(id){const idea=await api('/api/ideas/'+id);if(idea.message){document.getElementById('app').innerHTML='<p>Idea not found.</p>';return;}document.getElementById('app').innerHTML='<a data-link href="/">← Back</a><div class="card"><h2>'+idea.title+'</h2><p style="white-space:pre-wrap">'+idea.description.replace(/</g,'&lt;')+'</p><strong style="font-size:1.3rem;">$'+idea.price.toFixed(2)+'</strong></div>'}// ───── render ─────
+// function render(){const p=location.pathname;if(p==='/new')return formView();if(p.startsWith('/idea/'))return detailView(p.split('/').pop());return listView()}render();</script></body></html>`;
+
+// // ───────────────────────────────────────────────────────────────
+// // Routes that serve the SPA HTML (no regex magic — explicit paths)
+// // ───────────────────────────────────────────────────────────────
+// function sendHtml(_req, res){res.type('html').send(html);}  // helper
+
+// app.get('/', sendHtml);        // root
+// app.get('/new', sendHtml);     // create form
+// app.get('/idea/:id', sendHtml); // idea detail
+
+// // Catch‑all 404 for anything else not handled above
+// app.use((req, res) => {
+//   res.status(404).send('Not found');
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`🚀  Sell‑Ideas server running → http://localhost:${PORT}`);
+// });
+// sell-ideas-single.js – one‑file demo marketplace (CommonJS) with DELETE support
+// Quick start:
+//   npm install express
+//   node sell-ideas-single.js
+// NOTE: In‑memory storage. Restarting the server clears everything.
+
 const express = require('express');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
-const helmet = require('helmet');
-const path = require('path');
 
-const app = express();
-const PORT = process.env.PORT || 3000; // Use 3000 as fallback if PORT is not set
-const MONGO_URI = process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!MONGO_URI || !JWT_SECRET) {
-    console.error('Missing env vars');
-    process.exit(1);
-}
-
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-    family: 4,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    retryWrites: true,
-    w: 'majority'
-})
-    .then(() => console.log('Successfully connected to MongoDB'))
-    .catch(e => {
-        console.error('MongoDB connection error:', e);
-        console.error('Make sure your MongoDB Atlas cluster has the correct IP whitelist settings');
-        process.exit(1);
-    });
-
-// Security middleware
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"]
-        }
-    }
-}));
-
-// Middleware
+const PORT = process.env.PORT || 5000;
+const app  = express();
 app.use(express.json());
-app.use(cookieParser());
-app.use(express.static(__dirname));
 
-const User = mongoose.model('User', new mongoose.Schema({
-    name: String,
-    email: { type: String, unique: true },
-    passwordHash: String
-}));
-const Idea=mongoose.model('Idea',new mongoose.Schema({title:String,description:String,price:Number,userId:{type:mongoose.Types.ObjectId,ref:'User'}}));
+// Log every request (method + URL)
+app.use((req, _res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
-function sign(u){return jwt.sign({id:u._id,name:u.name},JWT_SECRET,{expiresIn:'7d'});} 
-function auth(req,res,next){const t=req.cookies.token;if(!t)return res.status(401).end();try{req.user=jwt.verify(t,JWT_SECRET);next();}catch{res.status(401).end();}}
+// ───────────────────────────────────────────────────────────────
+// In‑memory store
+// ───────────────────────────────────────────────────────────────
+const ideas = [];
+let   nextId = 1;
 
-app.post('/api/register',async(req,res)=>{const{ name,email,password}=req.body;if(!name||!email||!password||password.length<8)return res.status(400).end();if(await User.findOne({email}))return res.status(409).end();const u=await User.create({name,email,passwordHash:await bcrypt.hash(password,12)});res.cookie('token',sign(u),{httpOnly:true,sameSite:'lax'});res.json({id:u._id,name:u.name});});
-app.post('/api/login',async(req,res)=>{const{email,password}=req.body;const u=await User.findOne({email});if(!u||!(await bcrypt.compare(password,u.passwordHash)))return res.status(401).end();res.cookie('token',sign(u),{httpOnly:true,sameSite:'lax'});res.json({id:u._id,name:u.name});});
-app.post('/api/logout',(_req,res)=>{res.clearCookie('token');res.json({ok:true});});
+// ───────────────────────────────────────────────────────────────
+// REST API
+// ───────────────────────────────────────────────────────────────
+app.get('/api/ideas', (_req, res) => {
+  res.json([...ideas].reverse()); // newest first
+});
 
-app.get('/api/ideas',async(_req,res)=>{const list=await Idea.find().sort('-_id').populate('userId','name');res.json(list.map(i=>({_id:i._id,title:i.title,description:i.description,price:i.price,userId:i.userId._id,userName:i.userId.name})));});
-app.post('/api/ideas',auth,async(req,res)=>{const{title,description,price}=req.body;if(!title||!description||price==null)return res.status(400).end();const idea=await Idea.create({title,description,price:Number(price),userId:req.user.id});res.json(idea);});
-app.get('/api/ideas/:id',async(req,res)=>{const i=await Idea.findById(req.params.id).populate('userId','name');if(!i)return res.status(404).end();res.json({_id:i._id,title:i.title,description:i.description,price:i.price,userId:i.userId._id,userName:i.userId.name});});
-app.delete('/api/ideas/:id',auth,async(req,res)=>{const i=await Idea.findById(req.params.id);if(!i)return res.status(404).end();if(i.userId.toString()!==req.user.id)return res.status(403).end();await i.deleteOne();res.json({ok:true});});
+app.post('/api/ideas', (req, res) => {
+  const { title, description, price } = req.body;
+  if (!title || !description || price == null) {
+    return res.status(400).json({ message: 'title, description and price are required' });
+  }
+  const idea = {
+    id: nextId++,
+    title,
+    description,
+    price: Number(price),
+    createdAt: Date.now(),
+  };
+  ideas.push(idea);
+  res.status(201).json(idea);
+});
 
-const SPA_HTML=`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Sell Your Ideas</title><style>body{font-family:Arial,Helvetica,sans-serif;margin:2rem;max-width:700px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}input,textarea{display:block;margin:0.5rem 0;padding:0.5rem;width:100%;max-width:400px}button{padding:0.5rem 1rem;margin:0.25rem}button.small{padding:0.25rem 0.5rem;font-size:0.8rem}.idea{border:1px solid #ccc;padding:1rem;margin:1rem 0;border-radius:6px}.idea h3{margin:0 0 0.25rem}</style></head><body><header><h1>Sell Your Ideas</h1><nav id="auth"></nav></header><div id="main"></div><script>
-const API='/api';
-let me=null;
-function req(u,o={}){o.credentials='include';o.headers={'Content-Type':'application/json'};return fetch(u,o).then(r=>r.ok?r.json():r.text().then(t=>{throw t}))}
-function alertErr(e){alert(e);} 
-function renderAuth(){document.getElementById('auth').innerHTML=me?'Hi, '+me.name+' <button onclick="logout()">Logout</button> <button onclick="showNew()">Post Idea</button>':'<button onclick="showLogin()">Login</button> <button onclick="showReg()">Register</button>';}
-function refresh(){req(API+'/ideas').then(list=>{let html='';list.forEach(i=>{html+='<div class="idea" onclick="view(\''+i._id+'\')"><h3>'+i.title+'</h3><p>'+i.description+'</p><strong>$'+i.price.toFixed(2)+'</strong><br><small>by '+i.userName+'</small>'+(me&&me.id===i.userId?' <button class="small" onclick="event.stopPropagation();del(\''+i._id+'\')">Delete</button>':'')+'</div>';});document.getElementById('main').innerHTML=html;}).catch(alertErr);} 
-function view(id){req(API+'/ideas/'+id).then(i=>{document.getElementById('main').innerHTML='<h2>'+i.title+'</h2><p>'+i.description+'</p><p><strong>$'+i.price.toFixed(2)+'</strong></p><p>by '+i.userName+'</p>'+(me&&me.id===i.userId?' <button onclick="del(\''+i._id+'\')">Delete</button>':'')+' <button onclick="refresh()">Back</button>';}).catch(alertErr);} 
-function del(id){req(API+'/ideas/'+id,{method:'DELETE'}).then(refresh).catch(alertErr);} 
-function showLogin(){document.getElementById('main').innerHTML='<h2>Login</h2><input id="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button onclick="login()">Login</button>';}
-function login(){req(API+'/login',{method:'POST',body:JSON.stringify({email:document.getElementById('email').value,password:document.getElementById('pass').value})}).then(u=>{me=u;renderAuth();refresh();}).catch(alertErr);} 
-function showReg(){document.getElementById('main').innerHTML='<h2>Register</h2><input id="name" placeholder="Name"><input id="email" placeholder="Email"><input id="pass" type="password" placeholder="Password (8+)"><button onclick="register()">Register</button>';}
-function register(){req(API+'/register',{method:'POST',body:JSON.stringify({name:document.getElementById('name').value,email:document.getElementById('email').value,password:document.getElementById('pass').value})}).then(u=>{me=u;renderAuth();refresh();}).catch(alertErr);} 
-function logout(){req(API+'/logout',{method:'POST'}).then(()=>{me=null;renderAuth();refresh();});}
-function showNew(){if(!me){alert('Login first');return;}document.getElementById('main').innerHTML='<h2>New Idea</h2><input id="title" placeholder="Title"><textarea id="desc" placeholder="Description"></textarea><input id="price" type="number" min="0" step="0.01" placeholder="Price"><button onclick="postIdea()">Publish</button>';}
-function postIdea(){req(API+'/ideas',{method:'POST',body:JSON.stringify({title:document.getElementById('title').value,description:document.getElementById('desc').value,price:Number(document.getElementById('price').value)})}).then(refresh).catch(alertErr);} 
-renderAuth();refresh();
-</script></body></html>`;
+app.get('/api/ideas/:id', (req, res) => {
+  const idea = ideas.find(i => i.id === Number(req.params.id));
+  if (!idea) return res.status(404).json({ message: 'Not found' });
+  res.json(idea);
+});
 
-app.get('*',(_req,res)=>res.send(SPA_HTML));
+// NEW: delete endpoint
+app.delete('/api/ideas/:id', (req, res) => {
+  const idx = ideas.findIndex(i => i.id === Number(req.params.id));
+  if (idx === -1) return res.status(404).json({ message: 'Not found' });
+  ideas.splice(idx, 1);
+  res.status(204).end();
+});
 
-app.listen(PORT,()=>console.log('up '+PORT));
+// ───────────────────────────────────────────────────────────────
+// Front‑end served as a literal HTML string
+// ───────────────────────────────────────────────────────────────
+const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Sell Your Ideas</title><style>:root{color-scheme:light dark}body{font-family:system-ui,Arial,sans-serif;margin:0;padding:2rem;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.5}h1,h2,h3{margin:0 0 .4em}a{color:#0366d6;text-decoration:none}a:hover{text-decoration:underline}.btn{display:inline-block;padding:.45rem 1rem;background:#0366d6;color:#fff;border-radius:4px;margin:.6rem 0;border:none;cursor:pointer}.danger{background:#e74c3c}.card{border:1px solid #ddd;padding:1rem;border-radius:6px;margin-top:1rem}input,textarea{width:100%;padding:.5rem;margin:.25rem 0;border:1px solid #ccc;border-radius:4px;font:inherit}</style></head><body><h1>Sell Your Ideas</h1><div id="app"></div><script>// ───── client-side router ─────\nfunction navigate(p){history.pushState(null,'',p);render()}window.addEventListener('popstate',render);document.addEventListener('click',e=>{const a=e.target.closest('a[data-link]');if(a){e.preventDefault();navigate(a.getAttribute('href'))}});// ───── fetch helper ─────\nasync function api(p,opt={}){const r=await fetch(p,{headers:{'Content-Type':'application/json'},...opt});if(!r.ok) return {message:(await r.text())||r.statusText};return r.status===204?{}:r.json()}// ───── views ─────\nasync function listView(){const list=await api('/api/ideas');const markup='<a data-link href="/new" class="btn">Post a new idea →</a>'+list.map(i=>'<div class="card"><h3><a data-link href="/idea/'+i.id+'">'+i.title+'</a></h3><p>'+i.description.replace(/</g,'&lt;').slice(0,120)+(i.description.length>120?'…':'')+'</p><strong>$'+i.price.toFixed(2)+'</strong></div>').join('');document.getElementById('app').innerHTML=markup}function formView(){document.getElementById('app').innerHTML='<a data-link href="/" >← Back</a><form id="ideaForm"><input name="title" placeholder="Title" required/><textarea name="description" rows="4" placeholder="Description" required></textarea><input name="price" type="number" step="0.01" min="0" placeholder="Price (USD)" required/><button class="btn" type="submit">Publish</button></form>';document.getElementById('ideaForm').addEventListener('submit',async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target).entries());data.price=Number(data.price);const idea=await api('/api/ideas',{method:'POST',body:JSON.stringify(data)});navigate('/idea/'+idea.id)})}async function detailView(id){const idea=await api('/api/ideas/'+id);if(idea.message){document.getElementById('app').innerHTML='<p>Idea not found.</p>';return;}const markup='<a data-link href="/">← Back</a><button id="delBtn" class="btn danger" style="float:right;">Delete</button><div class="card" style="clear:both"><h2>'+idea.title+'</h2><p style="white-space:pre-wrap">'+idea.description.replace(/</g,'&lt;')+'</p><strong style="font-size:1.3rem;">$'+idea.price.toFixed(2)+'</strong></div>';document.getElementById('app').innerHTML=markup;document.getElementById('delBtn').addEventListener('click',async()=>{if(!confirm('Delete this idea?')) return;await api('/api/ideas/'+id,{method:'DELETE'});navigate('/')});}// ───── render ─────\nfunction render(){const p=location.pathname;if(p==='/new')return formView();if(p.startsWith('/idea/'))return detailView(p.split('/').pop());return listView()}render();</script></body></html>`;
+
+// ───────────────────────────────────────────────────────────────
+// Routes that serve the SPA HTML
+// ───────────────────────────────────────────────────────────────
+function sendHtml(_req, res){res.type('html').send(html);}  // helper
+
+app.get('/', sendHtml);
+app.get('/new', sendHtml);
+app.get('/idea/:id', sendHtml);
+
+// Catch‑all 404 for anything else not handled above
+app.use((req, res) => {
+  res.status(404).send('Not found');
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀  Sell‑Ideas server running → http://localhost:${PORT}`);
+});
