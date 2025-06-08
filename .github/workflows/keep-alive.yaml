@@ -1,0 +1,14 @@
+name: Keep Render Awake
+
+on:
+  schedule:
+    # every 14 minutes (GitHub Actions cron uses UTC)
+    - cron:  '*/14 * * * *'
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl your Render site
+        run: |
+          curl -fsSL https://sell-ideas.onrender.com || true
